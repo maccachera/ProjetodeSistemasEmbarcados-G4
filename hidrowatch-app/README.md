@@ -1,6 +1,6 @@
 # HydroWatch — protótipo mobile estático
 
-Frontend demonstrativo feito apenas com HTML, CSS e JavaScript puro. Não há framework, etapa de build, banco de dados ou dependências externas.
+Frontend demonstrativo feito apenas com HTML, CSS e JavaScript puro. A interface apresenta exclusivamente o nível da água medido pelo sensor ultrassônico, a distância até a superfície, os limites configurados e o histórico de leituras. Não há framework, etapa de build, banco de dados ou dependências externas.
 
 ## Executar localmente
 

@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#073f46" />
     <meta
       name="description"
-      content="Protótipo mobile do painel de monitoramento HydroWatch."
+      content="Protótipo mobile para monitoramento do nível da água com o HydroWatch."
     />
     <title>HydroWatch — Monitoramento da água</title>
     <link rel="stylesheet" href="styles.css" />
@@ -39,16 +39,9 @@
         <circle cx="12" cy="19" r=".8" class="icon-fill" />
       </symbol>
       <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></symbol>
-      <symbol id="icon-thermometer" viewBox="0 0 24 24">
-        <path d="M9 14.8V5a3 3 0 0 1 6 0v9.8a5 5 0 1 1-6 0Z" /><path d="M12 7v10" />
+      <symbol id="icon-ruler" viewBox="0 0 24 24">
+        <path d="M5 3v18M5 5h6M5 9h4M5 13h6M5 17h4M5 21h6" />
       </symbol>
-      <symbol id="icon-eye" viewBox="0 0 24 24">
-        <path d="M2.8 12s3.4-6 9.2-6 9.2 6 9.2 6-3.4 6-9.2 6-9.2-6-9.2-6Z" /><circle cx="12" cy="12" r="2.5" />
-      </symbol>
-      <symbol id="icon-flask" viewBox="0 0 24 24">
-        <path d="M9 3h6m-5 0v6.2l-5.2 8.5A2.2 2.2 0 0 0 6.7 21h10.6a2.2 2.2 0 0 0 1.9-3.3L14 9.2V3" /><path d="M7.5 16h9" />
-      </symbol>
-      <symbol id="icon-flow" viewBox="0 0 24 24"><path d="M4 7h10m0 0-3-3m3 3-3 3M20 17H10m0 0 3 3m-3-3 3-3" /></symbol>
       <symbol id="icon-sliders" viewBox="0 0 24 24"><path d="M4 6h7m4 0h5M4 12h2m4 0h10M4 18h10m4 0h2" /><circle cx="13" cy="6" r="2" /><circle cx="8" cy="12" r="2" /><circle cx="16" cy="18" r="2" /></symbol>
       <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 11v5m0-8h.01" /></symbol>
       <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4.2 4.2L19 6.5" /></symbol>
@@ -76,78 +69,74 @@
 
           <div class="content home-content">
             <div class="station-row">
-              <label class="station-select">
+              <div class="station-select">
                 <span>Monitorando</span>
-                <select id="stationSelect" aria-label="Selecionar ponto de monitoramento">
-                  <option>Reservatório principal</option>
-                  <option>Caixa superior</option>
-                  <option>Cisterna externa</option>
-                </select>
-              </label>
+                <strong>Tanque do protótipo</strong>
+              </div>
               <span class="online-chip"><span></span> Online</span>
             </div>
 
             <article class="level-card">
               <div class="level-card__header">
                 <div>
-                  <span class="card-kicker">NÍVEL DA ÁGUA</span>
-                  <div class="level-value"><strong>72</strong><span>%</span></div>
+                  <span class="card-kicker">NÍVEL ATUAL</span>
+                  <div class="level-value"><strong>7,6</strong><span>cm</span></div>
                 </div>
                 <button class="refresh-button" id="refreshButton" type="button" aria-label="Atualizar dados">
                   <svg><use href="#icon-refresh"></use></svg>
                 </button>
               </div>
 
-              <div class="level-track" aria-label="Nível atual: 72%">
-                <span style="width: 72%"></span>
+              <div class="level-track" aria-label="Nível atual: 7,6 centímetros, equivalente a 51%">
+                <span style="width: 51%"></span>
               </div>
 
               <div class="level-meta">
-                <div><span>Volume estimado</span><strong>720 L</strong></div>
-                <div><span>Capacidade</span><strong>1.000 L</strong></div>
+                <div><span>Preenchimento</span><strong>51%</strong></div>
+                <div><span>Altura do tanque</span><strong>15,0 cm</strong></div>
               </div>
 
               <div class="card-footer">
-                <span class="quality-status"><svg><use href="#icon-check"></use></svg> Nível adequado</span>
+                <span class="quality-status"><svg><use href="#icon-check"></use></svg> Faixa normal</span>
                 <span id="lastUpdate">Atualizado às 14:32</span>
               </div>
             </article>
 
             <div class="section-heading">
-              <div><span class="eyebrow">LEITURA EM TEMPO REAL</span><h2>Qualidade da água</h2></div>
+              <div><span class="eyebrow">LEITURA EM TEMPO REAL</span><h2>Resumo da medição</h2></div>
               <button class="text-button" type="button" data-go-to="historico">Ver histórico</button>
             </div>
 
             <div class="metrics-grid">
               <article class="metric-card">
-                <span class="metric-icon temperature"><svg><use href="#icon-thermometer"></use></svg></span>
-                <span class="metric-label">Temperatura</span>
-                <div class="metric-value">24,6 <small>°C</small></div>
-                <span class="metric-state good">Ideal</span>
+                <span class="metric-icon distance"><svg><use href="#icon-ruler"></use></svg></span>
+                <span class="metric-label">Distância do sensor</span>
+                <div class="metric-value">7,4 <small>cm</small></div>
+                <span class="metric-state neutral">Leitura válida</span>
               </article>
               <article class="metric-card">
-                <span class="metric-icon ph"><svg><use href="#icon-flask"></use></svg></span>
-                <span class="metric-label">pH</span>
-                <div class="metric-value">7,2</div>
-                <span class="metric-state good">Equilibrado</span>
+                <span class="metric-icon range"><svg><use href="#icon-check"></use></svg></span>
+                <span class="metric-label">Faixa atual</span>
+                <div class="metric-value">Normal</div>
+                <span class="metric-state good">Sem alerta</span>
               </article>
               <article class="metric-card">
-                <span class="metric-icon turbidity"><svg><use href="#icon-eye"></use></svg></span>
-                <span class="metric-label">Turbidez</span>
-                <div class="metric-value">3,8 <small>NTU</small></div>
-                <span class="metric-state attention">Atenção</span>
+                <span class="metric-icon limit-low"><svg><use href="#icon-drop"></use></svg></span>
+                <span class="metric-label">Limite baixo</span>
+                <div class="metric-value">3,0 <small>cm</small></div>
+                <span class="metric-state neutral">Buzzer abaixo</span>
               </article>
               <article class="metric-card">
-                <span class="metric-icon flow"><svg><use href="#icon-flow"></use></svg></span>
-                <span class="metric-label">Vazão</span>
-                <div class="metric-value">8,4 <small>L/min</small></div>
-                <span class="metric-state neutral">Estável</span>
+                <span class="metric-icon limit-high"><svg><use href="#icon-drop"></use></svg></span>
+                <span class="metric-label">Limite alto</span>
+                <div class="metric-value">12,0 <small>cm</small></div>
+                <span class="metric-state neutral">Buzzer acima</span>
               </article>
             </div>
 
             <article class="insight-card">
               <div class="insight-icon"><svg><use href="#icon-info"></use></svg></div>
-              <div><span class="card-kicker">ANÁLISE DO SISTEMA</span><h3>Consumo dentro do esperado</h3><p>Você utilizou 8% menos água do que na semana passada.</p></div>
+              <div><span class="card-kicker">ESTADO DO TANQUE</span><h3>Nível dentro da faixa segura</h3><p>O nível está 4,6 cm acima do limite baixo configurado.</p></div>
               <svg class="chevron"><use href="#icon-chevron"></use></svg>
             </article>
           </div>
@@ -167,7 +156,7 @@
             </div>
 
             <article class="chart-card">
-              <div class="chart-head"><div><span>Nível médio</span><strong id="averageLevel">74%</strong></div><span class="trend">+3,2%</span></div>
+              <div class="chart-head"><div><span>Nível médio</span><strong id="averageLevel">7,4 cm</strong></div><span class="trend">+0,3 cm</span></div>
               <svg class="line-chart" id="levelChart" viewBox="0 0 360 180" role="img" aria-label="Gráfico do nível da água nos últimos sete dias">
                 <defs>
                   <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#15a9a0" stop-opacity=".32"/><stop offset="1" stop-color="#15a9a0" stop-opacity="0"/></linearGradient>
@@ -182,10 +171,10 @@
 
             <div class="section-heading compact"><div><span class="eyebrow">ÚLTIMAS MEDIÇÕES</span><h2>Registros recentes</h2></div></div>
             <div class="readings-list">
-              <article><span class="reading-date"><strong>Hoje</strong><small>14:32</small></span><span><small>Nível</small><strong>72%</strong></span><span><small>pH</small><strong>7,2</strong></span><span class="reading-ok">Normal</span></article>
-              <article><span class="reading-date"><strong>Hoje</strong><small>12:00</small></span><span><small>Nível</small><strong>74%</strong></span><span><small>pH</small><strong>7,1</strong></span><span class="reading-ok">Normal</span></article>
-              <article><span class="reading-date"><strong>Hoje</strong><small>09:30</small></span><span><small>Nível</small><strong>78%</strong></span><span><small>pH</small><strong>7,3</strong></span><span class="reading-ok">Normal</span></article>
-              <article><span class="reading-date"><strong>Ontem</strong><small>21:45</small></span><span><small>Nível</small><strong>69%</strong></span><span><small>pH</small><strong>7,0</strong></span><span class="reading-watch">Revisar</span></article>
+              <article><span class="reading-date"><strong>Hoje</strong><small>14:32</small></span><span><small>Nível</small><strong>7,6 cm</strong></span><span><small>Distância</small><strong>7,4 cm</strong></span><span class="reading-ok">Normal</span></article>
+              <article><span class="reading-date"><strong>Hoje</strong><small>12:00</small></span><span><small>Nível</small><strong>7,4 cm</strong></span><span><small>Distância</small><strong>7,6 cm</strong></span><span class="reading-ok">Normal</span></article>
+              <article><span class="reading-date"><strong>Hoje</strong><small>09:30</small></span><span><small>Nível</small><strong>7,8 cm</strong></span><span><small>Distância</small><strong>7,2 cm</strong></span><span class="reading-ok">Normal</span></article>
+              <article><span class="reading-date"><strong>Ontem</strong><small>21:45</small></span><span><small>Nível</small><strong>2,8 cm</strong></span><span><small>Distância</small><strong>12,2 cm</strong></span><span class="reading-watch">Baixo</span></article>
             </div>
           </div>
         </section>
@@ -198,24 +187,24 @@
 
           <div class="content alerts-content">
             <div class="alert-summary">
-              <div><strong id="alertCount">1</strong><span>atenção necessária</span></div>
+              <div><strong id="alertCount">1</strong><span>alerta de nível</span></div>
               <div class="summary-ring"><span></span></div>
             </div>
 
             <div class="section-label">HOJE</div>
             <article class="alert-item is-unread">
-              <span class="alert-symbol amber"><svg><use href="#icon-eye"></use></svg></span>
-              <div><div class="alert-title-row"><h2>Turbidez acima do ideal</h2><span></span></div><p>A leitura chegou a 5,4 NTU às 10:18. Verifique o filtro do reservatório.</p><time>Há 4 horas</time></div>
+              <span class="alert-symbol amber"><svg><use href="#icon-drop"></use></svg></span>
+              <div><div class="alert-title-row"><h2>Nível abaixo do limite</h2><span></span></div><p>O nível chegou a 2,8 cm às 10:18 e o alerta sonoro foi acionado.</p><time>Há 4 horas</time></div>
             </article>
 
             <div class="section-label">ANTERIORES</div>
             <article class="alert-item">
               <span class="alert-symbol teal"><svg><use href="#icon-drop"></use></svg></span>
-              <div><h2>Nível restabelecido</h2><p>O reservatório retornou à faixa adequada após o abastecimento.</p><time>Ontem, 18:42</time></div>
+              <div><h2>Nível normalizado</h2><p>O tanque retornou à faixa configurada, com leitura de 7,6 cm.</p><time>Ontem, 18:42</time></div>
             </article>
             <article class="alert-item">
               <span class="alert-symbol slate"><svg><use href="#icon-wifi"></use></svg></span>
-              <div><h2>Sensor reconectado</h2><p>A comunicação do ponto principal foi restabelecida.</p><time>20 set., 08:15</time></div>
+              <div><h2>Falha de leitura encerrada</h2><p>O sensor ultrassônico voltou a retornar medições válidas.</p><time>20 set., 08:15</time></div>
             </article>
           </div>
         </section>
@@ -233,7 +222,7 @@
 
             <div class="section-label">DISPOSITIVO</div>
             <div class="settings-list">
-              <button type="button"><span class="setting-icon"><svg><use href="#icon-sliders"></use></svg></span><span><strong>Limites dos sensores</strong><small>Configure as faixas ideais</small></span><svg class="chevron"><use href="#icon-chevron"></use></svg></button>
+              <button type="button"><span class="setting-icon"><svg><use href="#icon-sliders"></use></svg></span><span><strong>Limites de nível</strong><small>Baixo: 3 cm • Alto: 12 cm</small></span><svg class="chevron"><use href="#icon-chevron"></use></svg></button>
               <button type="button"><span class="setting-icon"><svg><use href="#icon-bell"></use></svg></span><span><strong>Notificações</strong><small>Alertas críticos ativados</small></span><svg class="chevron"><use href="#icon-chevron"></use></svg></button>
               <button type="button"><span class="setting-icon"><svg><use href="#icon-wifi"></use></svg></span><span><strong>Conectividade</strong><small>Wi-Fi • Sinal excelente</small></span><svg class="chevron"><use href="#icon-chevron"></use></svg></button>
             </div>

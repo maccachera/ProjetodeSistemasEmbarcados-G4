@@ -120,7 +120,7 @@ h1, h2, h3, .level-value, .metric-value { font-family: Inter, ui-sans-serif, sys
 .station-row { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
 .station-select { display: grid; gap: 2px; min-width: 0; }
 .station-select > span { color: var(--ink-soft); font-size: .76rem; }
-.station-select select { max-width: 235px; border: 0; padding: 0 20px 0 0; color: var(--ink); background: transparent; font-weight: 700; outline: none; cursor: pointer; }
+.station-select strong { color: var(--ink); font-size: .9rem; }
 
 .online-chip { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; color: var(--teal); font-size: .74rem; font-weight: 700; }
 .online-chip > span { width: 7px; height: 7px; border-radius: 50%; background: #25b67f; box-shadow: 0 0 0 4px rgba(37,182,127,.12); }
@@ -166,10 +166,10 @@ h1, h2, h3, .level-value, .metric-value { font-family: Inter, ui-sans-serif, sys
 .metric-card { display: grid; min-height: 158px; padding: 16px; border: 1px solid #e1ece9; border-radius: 21px; background: var(--white); box-shadow: 0 7px 22px rgba(22, 66, 69, .045); }
 .metric-icon { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 13px; border-radius: 11px; }
 .metric-icon svg { width: 18px; height: 18px; }
-.metric-icon.temperature { color: #e47a4a; background: #fff0e9; }
-.metric-icon.ph { color: #7069c4; background: #f0effe; }
-.metric-icon.turbidity { color: #c78316; background: #fff3dc; }
-.metric-icon.flow { color: var(--teal); background: var(--aqua-soft); }
+.metric-icon.distance { color: #267588; background: #e8f4f7; }
+.metric-icon.range { color: #11836c; background: #e6f7f1; }
+.metric-icon.limit-low { color: #c78316; background: #fff3dc; }
+.metric-icon.limit-high { color: #4f68af; background: #edf0fb; }
 .metric-label { color: var(--ink-soft); font-size: .73rem; }
 .metric-value { margin-top: 2px; font-size: 1.55rem; font-weight: 800; letter-spacing: -.05em; }
 .metric-value small { font-size: .72rem; font-weight: 700; letter-spacing: 0; }

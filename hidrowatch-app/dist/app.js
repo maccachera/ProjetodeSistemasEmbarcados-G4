@@ -7,22 +7,22 @@
 const mockData = {
   periods: {
     "24h": {
-      average: "73%",
-      trend: "+1,1%",
+      average: "7,3 cm",
+      trend: "+0,1 cm",
       line: "M14 104 C52 98 63 78 99 86 S151 111 183 93 S227 64 264 73 S317 83 346 65",
       area: "M14 104 C52 98 63 78 99 86 S151 111 183 93 S227 64 264 73 S317 83 346 65 L346 150 L14 150 Z",
       pointY: 65,
     },
     "7d": {
-      average: "74%",
-      trend: "+3,2%",
+      average: "7,4 cm",
+      trend: "+0,3 cm",
       line: "M14 91 C48 80 58 104 93 86 S143 68 180 76 S229 104 264 83 S314 53 346 61",
       area: "M14 91 C48 80 58 104 93 86 S143 68 180 76 S229 104 264 83 S314 53 346 61 L346 150 L14 150 Z",
       pointY: 61,
     },
     "30d": {
-      average: "71%",
-      trend: "−2,4%",
+      average: "7,1 cm",
+      trend: "−0,2 cm",
       line: "M14 55 C50 62 63 51 100 73 S150 96 182 84 S223 108 264 101 S310 75 346 83",
       area: "M14 55 C50 62 63 51 100 73 S150 96 182 84 S223 108 264 101 S310 75 346 83 L346 150 L14 150 Z",
       pointY: 83,
@@ -73,10 +73,6 @@ document.querySelector("#refreshButton").addEventListener("click", (event) => {
   const time = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   document.querySelector("#lastUpdate").textContent = `Atualizado às ${time}`;
   showToast("Dados atualizados");
-});
-
-document.querySelector("#stationSelect").addEventListener("change", (event) => {
-  showToast(`${event.target.value} selecionado`);
 });
 
 document.querySelectorAll("[data-period]").forEach((button) => {
