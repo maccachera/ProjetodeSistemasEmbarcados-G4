@@ -2,6 +2,14 @@
 
 O **HydroWatch** é um protótipo de sistema embarcado para monitoramento do nível de líquido em um tanque. O projeto utiliza um sensor ultrassônico HC-SR04 para medir a distância entre o sensor e a superfície do líquido e, a partir dessa medida, calcula o nível preenchido do tanque. Um buzzer é acionado quando o nível fica abaixo ou acima dos limites configurados.
 
+## Aplicativo mobile
+
+O projeto também inclui um protótipo estático e responsivo do aplicativo de monitoramento. A interface foi construída somente com HTML, CSS e JavaScript, sem frameworks ou etapa de compilação.
+
+**Acesse o protótipo:** [maccachera.github.io/ProjetodeSistemasEmbarcados-G4](https://maccachera.github.io/ProjetodeSistemasEmbarcados-G4/)
+
+Atualmente, as medições exibidas são simuladas. Em uma etapa futura, a camada de dados poderá ser conectada ao Supabase/PostgreSQL.
+
 ## Objetivo
 
 O projeto tem como objetivo demonstrar uma solução simples de monitoramento local capaz de:
@@ -124,8 +132,16 @@ Falha na leitura do sensor HC-SR04.
 
 ```text
 .
+├── .github/workflows/
+│   └── pages.yml
 ├── HydroWatch/
 │   └── HydroWatch.ino
+├── hidrowatch-app/
+│   ├── dist/
+│   │   ├── index.html
+│   │   ├── styles.css
+│   │   └── app.js
+│   └── README.md
 └── README.md
 ```
 

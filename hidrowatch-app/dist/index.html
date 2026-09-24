@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#073f46" />
+    <meta
+      name="description"
+      content="Protótipo mobile do painel de monitoramento HydroWatch."
+    />
+    <title>HydroWatch — Monitoramento da água</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <svg class="svg-sprite" aria-hidden="true">
+      <symbol id="icon-drop" viewBox="0 0 24 24">
+        <path d="M12 2.8S5.2 10.1 5.2 15.1A6.8 6.8 0 0 0 18.8 15c0-4.9-6.8-12.2-6.8-12.2Z" />
+      </symbol>
+      <symbol id="icon-home" viewBox="0 0 24 24">
+        <path d="m3 10.8 9-7.4 9 7.4v9.5a.8.8 0 0 1-.8.8H3.8a.8.8 0 0 1-.8-.8v-9.5Z" />
+        <path d="M9.2 21v-7.2h5.6V21" />
+      </symbol>
+      <symbol id="icon-chart" viewBox="0 0 24 24">
+        <path d="M4 19.5V14m5.3 5.5V9.4m5.4 10.1V4.8M20 19.5V12" />
+      </symbol>
+      <symbol id="icon-bell" viewBox="0 0 24 24">
+        <path d="M18 9.8a6 6 0 1 0-12 0c0 7-2.7 7-2.7 8.4h17.4C20.7 16.8 18 16.8 18 9.8Z" />
+        <path d="M14.3 21a2.6 2.6 0 0 1-4.6 0" />
+      </symbol>
+      <symbol id="icon-user" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4.8 21a7.2 7.2 0 0 1 14.4 0" />
+      </symbol>
+      <symbol id="icon-refresh" viewBox="0 0 24 24">
+        <path d="M20 7v5h-5" /><path d="M18.6 16.2A8 8 0 1 1 19.8 9" />
+      </symbol>
+      <symbol id="icon-wifi" viewBox="0 0 24 24">
+        <path d="M4 9a12 12 0 0 1 16 0M7 12.5a7.5 7.5 0 0 1 10 0M10 16a3 3 0 0 1 4 0" />
+        <circle cx="12" cy="19" r=".8" class="icon-fill" />
+      </symbol>
+      <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></symbol>
+      <symbol id="icon-thermometer" viewBox="0 0 24 24">
+        <path d="M9 14.8V5a3 3 0 0 1 6 0v9.8a5 5 0 1 1-6 0Z" /><path d="M12 7v10" />
+      </symbol>
+      <symbol id="icon-eye" viewBox="0 0 24 24">
+        <path d="M2.8 12s3.4-6 9.2-6 9.2 6 9.2 6-3.4 6-9.2 6-9.2-6-9.2-6Z" /><circle cx="12" cy="12" r="2.5" />
+      </symbol>
+      <symbol id="icon-flask" viewBox="0 0 24 24">
+        <path d="M9 3h6m-5 0v6.2l-5.2 8.5A2.2 2.2 0 0 0 6.7 21h10.6a2.2 2.2 0 0 0 1.9-3.3L14 9.2V3" /><path d="M7.5 16h9" />
+      </symbol>
+      <symbol id="icon-flow" viewBox="0 0 24 24"><path d="M4 7h10m0 0-3-3m3 3-3 3M20 17H10m0 0 3 3m-3-3 3-3" /></symbol>
+      <symbol id="icon-sliders" viewBox="0 0 24 24"><path d="M4 6h7m4 0h5M4 12h2m4 0h10M4 18h10m4 0h2" /><circle cx="13" cy="6" r="2" /><circle cx="8" cy="12" r="2" /><circle cx="16" cy="18" r="2" /></symbol>
+      <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 11v5m0-8h.01" /></symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4.2 4.2L19 6.5" /></symbol>
+    </svg>
+
+    <div class="app-shell">
+      <div class="ambient ambient-one"></div>
+      <div class="ambient ambient-two"></div>
+
+      <main class="phone" aria-label="Aplicativo HydroWatch">
+        <section class="screen is-active" data-screen="inicio" aria-labelledby="inicio-title">
+          <header class="topbar">
+            <div class="brand-lockup">
+              <span class="brand-mark"><svg><use href="#icon-drop"></use></svg></span>
+              <div>
+                <span class="eyebrow">BEM-VINDO DE VOLTA</span>
+                <h1 id="inicio-title">HydroWatch</h1>
+              </div>
+            </div>
+            <button class="icon-button notification-button" type="button" data-go-to="alertas" aria-label="Ver alertas">
+              <svg><use href="#icon-bell"></use></svg>
+              <span class="notification-dot" aria-label="1 alerta não lido"></span>
+            </button>
+          </header>
+
+          <div class="content home-content">
+            <div class="station-row">
+              <label class="station-select">
+                <span>Monitorando</span>
+                <select id="stationSelect" aria-label="Selecionar ponto de monitoramento">
+                  <option>Reservatório principal</option>
+                  <option>Caixa superior</option>
+                  <option>Cisterna externa</option>
+                </select>
+              </label>
+              <span class="online-chip"><span></span> Online</span>
+            </div>
+
+            <article class="level-card">
+              <div class="level-card__header">
+                <div>
+                  <span class="card-kicker">NÍVEL DA ÁGUA</span>
+                  <div class="level-value"><strong>72</strong><span>%</span></div>
+                </div>
+                <button class="refresh-button" id="refreshButton" type="button" aria-label="Atualizar dados">
+                  <svg><use href="#icon-refresh"></use></svg>
+                </button>
+              </div>
+
+              <div class="level-track" aria-label="Nível atual: 72%">
+                <span style="width: 72%"></span>
+              </div>
+
+              <div class="level-meta">
+                <div><span>Volume estimado</span><strong>720 L</strong></div>
+                <div><span>Capacidade</span><strong>1.000 L</strong></div>
+              </div>
+
+              <div class="card-footer">
+                <span class="quality-status"><svg><use href="#icon-check"></use></svg> Nível adequado</span>
+                <span id="lastUpdate">Atualizado às 14:32</span>
+              </div>
+            </article>
+
+            <div class="section-heading">
+              <div><span class="eyebrow">LEITURA EM TEMPO REAL</span><h2>Qualidade da água</h2></div>
+              <button class="text-button" type="button" data-go-to="historico">Ver histórico</button>
+            </div>
+
+            <div class="metrics-grid">
+              <article class="metric-card">
+                <span class="metric-icon temperature"><svg><use href="#icon-thermometer"></use></svg></span>
+                <span class="metric-label">Temperatura</span>
+                <div class="metric-value">24,6 <small>°C</small></div>
+                <span class="metric-state good">Ideal</span>
+              </article>
+              <article class="metric-card">
+                <span class="metric-icon ph"><svg><use href="#icon-flask"></use></svg></span>
+                <span class="metric-label">pH</span>
+                <div class="metric-value">7,2</div>
+                <span class="metric-state good">Equilibrado</span>
+              </article>
+              <article class="metric-card">
+                <span class="metric-icon turbidity"><svg><use href="#icon-eye"></use></svg></span>
+                <span class="metric-label">Turbidez</span>
+                <div class="metric-value">3,8 <small>NTU</small></div>
+                <span class="metric-state attention">Atenção</span>
+              </article>
+              <article class="metric-card">
+                <span class="metric-icon flow"><svg><use href="#icon-flow"></use></svg></span>
+                <span class="metric-label">Vazão</span>
+                <div class="metric-value">8,4 <small>L/min</small></div>
+                <span class="metric-state neutral">Estável</span>
+              </article>
+            </div>
+
+            <article class="insight-card">
+              <div class="insight-icon"><svg><use href="#icon-info"></use></svg></div>
+              <div><span class="card-kicker">ANÁLISE DO SISTEMA</span><h3>Consumo dentro do esperado</h3><p>Você utilizou 8% menos água do que na semana passada.</p></div>
+              <svg class="chevron"><use href="#icon-chevron"></use></svg>
+            </article>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="historico" aria-labelledby="historico-title" hidden>
+          <header class="page-header">
+            <div><span class="eyebrow">DADOS DO RESERVATÓRIO</span><h1 id="historico-title">Histórico</h1></div>
+            <button class="icon-button" type="button" aria-label="Configurar filtros"><svg><use href="#icon-sliders"></use></svg></button>
+          </header>
+
+          <div class="content history-content">
+            <div class="period-tabs" role="group" aria-label="Período do histórico">
+              <button type="button" data-period="24h">24 h</button>
+              <button type="button" data-period="7d" class="is-selected">7 dias</button>
+              <button type="button" data-period="30d">30 dias</button>
+            </div>
+
+            <article class="chart-card">
+              <div class="chart-head"><div><span>Nível médio</span><strong id="averageLevel">74%</strong></div><span class="trend">+3,2%</span></div>
+              <svg class="line-chart" id="levelChart" viewBox="0 0 360 180" role="img" aria-label="Gráfico do nível da água nos últimos sete dias">
+                <defs>
+                  <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#15a9a0" stop-opacity=".32"/><stop offset="1" stop-color="#15a9a0" stop-opacity="0"/></linearGradient>
+                </defs>
+                <g class="chart-grid"><line x1="14" y1="30" x2="346" y2="30"/><line x1="14" y1="82" x2="346" y2="82"/><line x1="14" y1="134" x2="346" y2="134"/></g>
+                <path class="chart-area" id="chartArea" d="M14 91 C48 80 58 104 93 86 S143 68 180 76 S229 104 264 83 S314 53 346 61 L346 150 L14 150 Z"/>
+                <path class="chart-line" id="chartLine" d="M14 91 C48 80 58 104 93 86 S143 68 180 76 S229 104 264 83 S314 53 346 61"/>
+                <g class="chart-point" id="chartPoint"><circle cx="346" cy="61" r="8"/><circle cx="346" cy="61" r="3"/></g>
+                <g class="chart-labels"><text x="14" y="174">SEG</text><text x="69" y="174">TER</text><text x="124" y="174">QUA</text><text x="179" y="174">QUI</text><text x="234" y="174">SEX</text><text x="289" y="174">SÁB</text><text x="338" y="174">DOM</text></g>
+              </svg>
+            </article>
+
+            <div class="section-heading compact"><div><span class="eyebrow">ÚLTIMAS MEDIÇÕES</span><h2>Registros recentes</h2></div></div>
+            <div class="readings-list">
+              <article><span class="reading-date"><strong>Hoje</strong><small>14:32</small></span><span><small>Nível</small><strong>72%</strong></span><span><small>pH</small><strong>7,2</strong></span><span class="reading-ok">Normal</span></article>
+              <article><span class="reading-date"><strong>Hoje</strong><small>12:00</small></span><span><small>Nível</small><strong>74%</strong></span><span><small>pH</small><strong>7,1</strong></span><span class="reading-ok">Normal</span></article>
+              <article><span class="reading-date"><strong>Hoje</strong><small>09:30</small></span><span><small>Nível</small><strong>78%</strong></span><span><small>pH</small><strong>7,3</strong></span><span class="reading-ok">Normal</span></article>
+              <article><span class="reading-date"><strong>Ontem</strong><small>21:45</small></span><span><small>Nível</small><strong>69%</strong></span><span><small>pH</small><strong>7,0</strong></span><span class="reading-watch">Revisar</span></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="alertas" aria-labelledby="alertas-title" hidden>
+          <header class="page-header">
+            <div><span class="eyebrow">CENTRAL DE AVISOS</span><h1 id="alertas-title">Alertas</h1></div>
+            <button class="text-button" id="markAllRead" type="button">Marcar como lidos</button>
+          </header>
+
+          <div class="content alerts-content">
+            <div class="alert-summary">
+              <div><strong id="alertCount">1</strong><span>atenção necessária</span></div>
+              <div class="summary-ring"><span></span></div>
+            </div>
+
+            <div class="section-label">HOJE</div>
+            <article class="alert-item is-unread">
+              <span class="alert-symbol amber"><svg><use href="#icon-eye"></use></svg></span>
+              <div><div class="alert-title-row"><h2>Turbidez acima do ideal</h2><span></span></div><p>A leitura chegou a 5,4 NTU às 10:18. Verifique o filtro do reservatório.</p><time>Há 4 horas</time></div>
+            </article>
+
+            <div class="section-label">ANTERIORES</div>
+            <article class="alert-item">
+              <span class="alert-symbol teal"><svg><use href="#icon-drop"></use></svg></span>
+              <div><h2>Nível restabelecido</h2><p>O reservatório retornou à faixa adequada após o abastecimento.</p><time>Ontem, 18:42</time></div>
+            </article>
+            <article class="alert-item">
+              <span class="alert-symbol slate"><svg><use href="#icon-wifi"></use></svg></span>
+              <div><h2>Sensor reconectado</h2><p>A comunicação do ponto principal foi restabelecida.</p><time>20 set., 08:15</time></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="perfil" aria-labelledby="perfil-title" hidden>
+          <header class="page-header">
+            <div><span class="eyebrow">SISTEMA E DISPOSITIVOS</span><h1 id="perfil-title">Configurações</h1></div>
+          </header>
+
+          <div class="content settings-content">
+            <article class="device-card">
+              <span class="device-visual"><svg><use href="#icon-wifi"></use></svg></span>
+              <div><span class="online-chip"><span></span> Conectado</span><h2>HW-Reservatório 01</h2><p>Última sincronização: agora</p></div>
+            </article>
+
+            <div class="section-label">DISPOSITIVO</div>
+            <div class="settings-list">
+              <button type="button"><span class="setting-icon"><svg><use href="#icon-sliders"></use></svg></span><span><strong>Limites dos sensores</strong><small>Configure as faixas ideais</small></span><svg class="chevron"><use href="#icon-chevron"></use></svg></button>
+              <button type="button"><span class="setting-icon"><svg><use href="#icon-bell"></use></svg></span><span><strong>Notificações</strong><small>Alertas críticos ativados</small></span><svg class="chevron"><use href="#icon-chevron"></use></svg></button>
+              <button type="button"><span class="setting-icon"><svg><use href="#icon-wifi"></use></svg></span><span><strong>Conectividade</strong><small>Wi-Fi • Sinal excelente</small></span><svg class="chevron"><use href="#icon-chevron"></use></svg></button>
+            </div>
+
+            <div class="section-label">SOBRE</div>
+            <div class="settings-list">
+              <button type="button"><span class="setting-icon"><svg><use href="#icon-info"></use></svg></span><span><strong>Sobre o HydroWatch</strong><small>Versão do protótipo 1.0</small></span><svg class="chevron"><use href="#icon-chevron"></use></svg></button>
+            </div>
+          </div>
+        </section>
+
+        <nav class="bottom-nav" aria-label="Navegação principal">
+          <button class="nav-item is-active" type="button" data-target="inicio"><svg><use href="#icon-home"></use></svg><span>Início</span></button>
+          <button class="nav-item" type="button" data-target="historico"><svg><use href="#icon-chart"></use></svg><span>Histórico</span></button>
+          <button class="nav-item" type="button" data-target="alertas"><span class="nav-icon-wrap"><svg><use href="#icon-bell"></use></svg><i></i></span><span>Alertas</span></button>
+          <button class="nav-item" type="button" data-target="perfil"><svg><use href="#icon-user"></use></svg><span>Ajustes</span></button>
+        </nav>
+
+        <div class="toast" id="toast" role="status" aria-live="polite"><svg><use href="#icon-check"></use></svg><span>Dados atualizados</span></div>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
