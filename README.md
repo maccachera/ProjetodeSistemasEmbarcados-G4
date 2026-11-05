@@ -1,163 +1,173 @@
 # HydroWatch
 
-O **HydroWatch** é um protótipo de sistema embarcado para monitoramento do nível de líquido em um tanque. O projeto utiliza um sensor ultrassônico HC-SR04 para medir a distância entre o sensor e a superfície do líquido e, a partir dessa medida, calcula o nível preenchido do tanque. Um buzzer é acionado quando o nível fica abaixo ou acima dos limites configurados.
+O HydroWatch monitora o nível de líquido de um tanque com 15 cm de altura. Um Arduino Uno mede a distância com um HC-SR04 e envia o nível por rádio LoRa P2P; um ESP32 recebe os dados, classifica o nível e os publica em um broker MQTT pela rede Wi-Fi.
 
-## Aplicativo mobile
+Não há LoRaWAN nem gateway neste projeto. Os dois módulos SMW-SX1262M0 se comunicam diretamente em **915200 kHz**.
 
-O projeto também inclui um protótipo estático e responsivo do aplicativo de monitoramento. A interface foi construída somente com HTML, CSS e JavaScript, sem frameworks ou etapa de compilação.
+O repositório também mantém em `hidrowatch-app/` um protótipo estático da interface mobile. Ele ainda usa dados simulados e não faz parte do caminho MQTT implementado nos sketches.
 
-**Acesse o protótipo:** [maccachera.github.io/ProjetodeSistemasEmbarcados-G4](https://maccachera.github.io/ProjetodeSistemasEmbarcados-G4/)
+## Arquitetura
 
-Atualmente, as medições exibidas são simuladas. Em uma etapa futura, a camada de dados poderá ser conectada ao Supabase/PostgreSQL.
+```text
+HC-SR04 → Arduino Uno + shield SMW-SX1262M0
+         → rádio LoRa P2P (915200 kHz)
+         → shield SMW-SX1262M0 + ESP32 WROVER
+         → Wi-Fi → broker MQTT → consumidor/aplicação
+```
 
-## Objetivo
+O transmissor mede e envia uma mensagem a cada 5 segundos. O receptor mantém a escuta LoRa em janelas de até 1 segundo e executa o `loop()` do cliente MQTT entre essas janelas. As novas tentativas de Wi-Fi e MQTT são controladas com `millis()`, sem esperas longas com `delay()`.
 
-O projeto tem como objetivo demonstrar uma solução simples de monitoramento local capaz de:
+## Hardware e ligações
 
-- medir periodicamente a distância até a superfície do líquido;
-- converter a distância medida em nível do tanque;
-- identificar níveis baixo e alto considerados críticos;
-- emitir um alerta sonoro em situações críticas;
-- exibir medições e falhas pelo Monitor Serial.
+### Transmissor — Arduino Uno
 
-## Componentes
-
-- 1 placa compatível com o framework Arduino;
-- 1 sensor ultrassônico HC-SR04;
-- 1 buzzer piezoelétrico;
-- protoboard e jumpers;
-- cabo USB para alimentação e gravação do programa.
-
-## Ligações
-
-| Componente | Terminal | Pino configurado |
+| Origem | Destino no Uno | Observação |
 | --- | --- | --- |
-| HC-SR04 | TRIG | 9 |
-| HC-SR04 | ECHO | 10 |
-| Buzzer | Sinal | 11 |
+| HC-SR04 TRIG | pino 6 | saída de disparo |
+| HC-SR04 ECHO | pino 7 | entrada do eco |
+| HC-SR04 VCC | 5V | alimentação |
+| HC-SR04 GND | GND | terra comum |
+| Shield LoRa pino 10 | pino 10 | RX de `SoftwareSerial` |
+| Shield LoRa pino 11 | pino 11 | TX de `SoftwareSerial` |
+| Shield LoRa | pino 13 e A0 | reservados para LED e botão do shield |
 
-Os terminais de alimentação devem ser ligados de acordo com as especificações da placa e dos componentes utilizados. Em placas que trabalham com lógica de 3,3 V, o sinal `ECHO` do HC-SR04 deve ser reduzido para uma tensão segura, por exemplo com um divisor resistivo.
+Os pinos 10, 11, 13 e A0 não devem ser compartilhados com outros componentes.
 
-## Funcionamento
+### Receptor — ESP32 WROVER Dev (38 pinos)
 
-A cada segundo, o microcontrolador envia um pulso de 10 microssegundos ao pino `TRIG`. O HC-SR04 responde mantendo o pino `ECHO` em nível alto durante o tempo de ida e volta da onda ultrassônica.
+| ESP32 | Shield LoRa | Função |
+| --- | --- | --- |
+| 3.3V | IOREF | referência lógica |
+| GPIO 25 (RX) | pino 10 | dados do shield para o ESP32 |
+| GPIO 26 (TX) | pino 11 | dados do ESP32 para o shield |
+| GND | GND | terra comum |
+| VCC/5V | 5V | alimentação do shield |
+| GPIO 27 | buzzer passivo, opcional | sinal a 1200 Hz |
 
-A distância é calculada por:
+Não use os GPIOs 6 a 11, ligados à flash, nem os GPIOs 16 e 17, reservados à PSRAM no WROVER. O buzzer vem desabilitado no código; para habilitá-lo, altere `#define USAR_BUZZER 0` para `1` em `receptor_esp32/receptor_esp32.ino`. A implementação seleciona automaticamente a API LEDC do core ESP32 2.x ou 3.x.
+
+## Protocolo LoRa
+
+O formato do payload é fixo:
 
 ```text
-distância (cm) = duração do eco × 0,0343 / 2
+N=12.4;P=83
 ```
 
-O valor é dividido por dois porque a onda percorre o caminho até a superfície e retorna ao sensor. Considerando um tanque com 15 cm de altura, o nível é obtido por:
+- `N`: nível em centímetros, com base na altura útil de 15 cm;
+- `P`: porcentagem cheia, calculada por `nível / 15 × 100` e arredondada;
+- `ERRO`: o HC-SR04 não retornou eco dentro de 30 ms.
 
-```text
-nível (cm) = altura do tanque − distância medida
-```
+O receptor aceita apenas a estrutura esperada e valores nos intervalos de 0 a 15 cm e de 0 a 100%. Payloads malformados são registrados no Monitor Serial e ignorados, sem publicação MQTT.
 
-O resultado é limitado ao intervalo de 0 a 15 cm para impedir valores fisicamente incompatíveis com o tanque configurado.
+### Alertas
 
-### Regras de alerta
-
-| Condição | Comportamento |
+| Nível | Valor de `alerta` |
 | --- | --- |
-| Nível menor ou igual a 3 cm | Buzzer ligado a 1200 Hz |
-| Nível entre 3 cm e 12 cm | Buzzer desligado |
-| Nível maior ou igual a 12 cm | Buzzer ligado a 1200 Hz |
-| Falha ou tempo esgotado na leitura | Mensagem de erro e buzzer desligado |
+| `N ≤ 3,0 cm` | `baixo` |
+| `3,0 cm < N < 12,0 cm` | `ideal` |
+| `N ≥ 12,0 cm` | `alto` |
 
-## Customizações realizadas
+## MQTT
 
-O software padrão da plataforma Arduino fornece funções genéricas para controlar pinos, medir pulsos, temporizar tarefas e gerar tons. Para transformar esses recursos em uma aplicação específica de monitoramento de tanque, foram realizados os seguintes esforços de desenvolvimento:
+O prefixo padrão é `hydrowatch` e pode ser alterado em `secrets.h`.
 
-1. **Mapeamento do hardware:** foram definidos pinos exclusivos para o gatilho e o eco do HC-SR04 e para o buzzer, centralizando a configuração no início do programa.
+| Tópico | Conteúdo | Quando é publicado |
+| --- | --- | --- |
+| `hydrowatch/nivel_cm` | nível, por exemplo `12.4` | medição LoRa válida |
+| `hydrowatch/nivel_pct` | percentual, por exemplo `83` | medição LoRa válida |
+| `hydrowatch/alerta` | `baixo`, `alto` ou `ideal` | medição LoRa válida |
+| `hydrowatch/rssi` | RSSI do pacote, por exemplo `-78.0` | medição LoRa válida |
+| `hydrowatch/status` | `online` | conexão ao broker estabelecida |
+| `hydrowatch/status` | `sensor_sem_eco` | payload LoRa igual a `ERRO` |
+| `hydrowatch/status` | `offline` | última vontade (LWT) do broker |
 
-2. **Rotina própria de leitura ultrassônica:** foi criada a função `medirDistanciaCm()`, responsável por gerar a sequência de disparo exigida pelo HC-SR04, medir a duração do eco e convertê-la de microssegundos para centímetros.
+As publicações são retidas para que um novo assinante receba o estado mais recente. A LWT usa QoS 1 e também é retida. As medições recebidas durante uma indisponibilidade do MQTT são mostradas no Serial, mas não são armazenadas para reenvio; uma nova medição será publicada depois da reconexão.
 
-3. **Proteção contra bloqueio e falha do sensor:** a chamada de `pulseIn()` recebeu um tempo limite de 30.000 microssegundos. Quando nenhum eco é detectado nesse período, a função retorna `NAN`, permitindo que o restante do sistema reconheça uma leitura inválida.
+## Dependências
 
-4. **Conversão de distância em nível:** a leitura bruta do sensor foi adaptada ao contexto do tanque. O software subtrai a distância medida da altura útil de 15 cm e usa `constrain()` para manter o resultado entre 0 e 15 cm.
+Instale pelo Gerenciador de Bibliotecas da Arduino IDE:
 
-5. **Parâmetros específicos do protótipo:** foram configurados a altura do tanque em 15 cm, o limite baixo em 3 cm, o limite alto em 12 cm e o intervalo entre leituras em 1 segundo. Esses valores estão definidos como constantes para facilitar calibrações futuras.
+- **RoboCore - SMW_SX1262M0** (a biblioteca instalada pode aparecer na pasta `arduino_997961`);
+- **PubSubClient**, de Nick O'Leary.
 
-6. **Lógica de alarme para dois extremos:** foi desenvolvida a função `atualizarBuzzer()`, que considera críticos tanto o nível muito baixo quanto o nível muito alto. Nessas condições, o buzzer produz um tom de 1200 Hz.
+Também são usadas bibliotecas fornecidas pelos respectivos cores:
 
-7. **Execução periódica sem `delay()` no laço principal:** o controle do intervalo de leitura utiliza `millis()`. Essa adaptação evita interromper o microcontrolador durante um segundo inteiro e permite adicionar outras tarefas futuramente.
+- `SoftwareSerial`, no Arduino AVR/Uno;
+- `WiFi` e `HardwareSerial`, no core **esp32 by Espressif Systems**.
 
-8. **Diagnóstico pelo Monitor Serial:** o programa informa a distância medida e o nível calculado com uma casa decimal, além de apresentar uma mensagem específica quando ocorre falha na leitura do HC-SR04.
+Nenhuma biblioteca LoRaWAN é necessária, pois a comunicação usa P2P.
 
-9. **Comportamento seguro em caso de erro:** quando a medição é inválida, o buzzer é desligado para evitar que uma falha de comunicação com o sensor seja interpretada como um nível crítico real.
+## Configuração das credenciais
 
-Essas customizações constituem a lógica própria do HydroWatch sobre as funções básicas fornecidas pelo ambiente Arduino.
+O arquivo real de credenciais é ignorado pelo Git e não deve ser commitado.
 
-## Parâmetros configuráveis
+1. Copie `receptor_esp32/secrets.example.h` para `receptor_esp32/secrets.h`.
+2. Preencha os valores da rede Wi-Fi e do broker.
+3. Deixe `MQTT_USER` e `MQTT_PASSWORD` vazios (`""`) se o broker aceitar conexão anônima.
+4. Mantenha `MQTT_TOPIC_PREFIX` como `"hydrowatch"` ou escolha outro prefixo sem a barra final.
 
-Os principais parâmetros podem ser alterados no início do arquivo [`HydroWatch/HydroWatch.ino`](HydroWatch/HydroWatch.ino):
+Exemplo da estrutura esperada:
 
 ```cpp
-const float ALTURA_TANQUE_CM = 15.0;
-const float NIVEL_BAIXO_CM = 3.0;
-const float NIVEL_ALTO_CM = 12.0;
-const unsigned long INTERVALO_LEITURA_MS = 1000;
+const char WIFI_SSID[] = "minha_rede";
+const char WIFI_PASSWORD[] = "minha_senha";
+const char MQTT_HOST[] = "broker.exemplo.com";
+const uint16_t MQTT_PORT = 1883;
+const char MQTT_USER[] = "usuario";
+const char MQTT_PASSWORD[] = "senha";
+const char MQTT_TOPIC_PREFIX[] = "hydrowatch";
 ```
 
-Os valores devem ser ajustados conforme a altura útil do tanque, a posição do sensor e os limites desejados para o alerta.
+O exemplo usa MQTT TCP na porta 1883. O sketch atual não configura TLS.
 
-## Como executar
+## Compilação e gravação
 
-1. Clone este repositório:
+### Transmissor
 
-   ```bash
-   git clone https://github.com/maccachera/ProjetodeSistemasEmbarcados-G4.git
-   ```
+1. Abra `transmissor_uno/transmissor_uno.ino` na Arduino IDE.
+2. Selecione **Arduino Uno**, a porta correta e compile/envie.
+3. Abra o Monitor Serial em **9600 baud**.
 
-2. Abra o arquivo `HydroWatch/HydroWatch.ino` na Arduino IDE.
-3. Selecione a placa e a porta serial correspondentes.
-4. Monte o circuito conforme a tabela de ligações.
-5. Compile e envie o programa para a placa.
-6. Abra o Monitor Serial na velocidade de **115200 baud**.
+### Receptor
 
-Uma leitura válida será exibida no formato:
+1. Crie `receptor_esp32/secrets.h` conforme a seção anterior.
+2. Abra `receptor_esp32/receptor_esp32.ino`.
+3. Use estas opções em **Ferramentas**:
 
-```text
-Distancia: 7.4 cm | Nivel: 7.6 cm
-```
+| Opção | Valor |
+| --- | --- |
+| Board | ESP32 Wrover Module |
+| Flash Mode | DIO |
+| Flash Frequency | 40 MHz |
+| PSRAM | Disabled |
+| Partition Scheme | Default 4MB with spiffs |
 
-Se o sensor não retornar um eco dentro do tempo limite, será exibido:
+4. Selecione a porta, compile/envie e abra o Monitor Serial em **115200 baud**.
 
-```text
-Falha na leitura do sensor HC-SR04.
-```
+O receptor usa `HardwareSerial(2)` nos GPIOs 25 e 26, conforme a montagem definida. Caso a versão instalada de **RoboCore - SMW_SX1262M0** rejeite `HardwareSerial`, preserve a biblioteca e as ligações e registre a mensagem exata do compilador para diagnóstico.
 
 ## Estrutura do repositório
 
 ```text
 .
-├── .github/workflows/
-│   └── pages.yml
-├── HydroWatch/
+├── transmissor_uno/
+│   └── transmissor_uno.ino
+├── receptor_esp32/
+│   ├── receptor_esp32.ino
+│   └── secrets.example.h
+├── legado/
 │   └── HydroWatch.ino
 ├── hidrowatch-app/
-│   ├── dist/
-│   │   ├── index.html
-│   │   ├── styles.css
-│   │   └── app.js
-│   └── README.md
+│   └── dist/
 └── README.md
 ```
 
-## Limitações atuais
+`legado/HydroWatch.ino` preserva a implementação anterior, de uma única placa, apenas como referência histórica.
 
-- os limites e a altura do tanque são definidos diretamente no código;
-- o projeto considera um tanque de geometria simples e informa o nível em centímetros, não o volume;
-- as leituras não são armazenadas em memória ou enviadas para um serviço externo;
-- o buzzer utiliza o mesmo padrão sonoro para nível baixo e nível alto;
-- ondulações, espuma, inclinação da superfície e posicionamento inadequado do sensor podem afetar a medição.
+## Limitações e testes de hardware
 
-## Melhorias futuras
-
-- aplicar filtragem ou média de várias leituras para reduzir oscilações;
-- usar padrões sonoros diferentes para nível baixo, nível alto e falha do sensor;
-- adicionar display local e indicadores luminosos;
-- permitir calibração sem recompilar o programa;
-- converter o nível em volume conforme a geometria do reservatório;
-- registrar um histórico ou transmitir os dados por Wi-Fi/Bluetooth.
+- O cálculo supõe um tanque de geometria simples e informa nível, não volume.
+- Ondulações, espuma e o posicionamento do sensor podem afetar as leituras.
+- Não há fila persistente para mensagens recebidas enquanto o broker está indisponível.
+- A alimentação, o alcance LoRa, as credenciais Wi-Fi/MQTT, a LWT e o buzzer precisam ser validados no hardware real.

@@ -1,0 +1,2 @@
+# Credenciais locais do receptor; use secrets.example.h como modelo.
+receptor_esp32/secrets.h
