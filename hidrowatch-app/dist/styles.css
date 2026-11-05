@@ -124,6 +124,8 @@ h1, h2, h3, .level-value, .metric-value { font-family: Inter, ui-sans-serif, sys
 
 .online-chip { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; color: var(--teal); font-size: .74rem; font-weight: 700; }
 .online-chip > span { width: 7px; height: 7px; border-radius: 50%; background: #25b67f; box-shadow: 0 0 0 4px rgba(37,182,127,.12); }
+.online-chip.is-offline { color: #9aa9aa; }
+.online-chip.is-offline > span { background: #94a3a5; box-shadow: 0 0 0 4px rgba(148,163,165,.12); }
 
 .level-card {
   position: relative;

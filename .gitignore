@@ -1,2 +1,7 @@
 # Credenciais locais do receptor; use secrets.example.h como modelo.
 receptor_esp32/secrets.h
+
+# Ferramentas e processos locais usados no teste MQTT/web.
+.local-tools/
+.runtime/
+.aws

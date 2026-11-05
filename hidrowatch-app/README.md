@@ -1,24 +1,39 @@
-# HydroWatch — protótipo mobile estático
+# HydroWatch — painel mobile
 
-Frontend demonstrativo feito apenas com HTML, CSS e JavaScript puro. A interface apresenta exclusivamente o nível da água medido pelo sensor ultrassônico, a distância até a superfície, os limites configurados e o histórico de leituras. Não há framework, etapa de build, banco de dados ou dependências externas.
+Frontend responsivo em HTML, CSS e JavaScript puro. O resumo da tela inicial recebe dados reais do broker MQTT por WebSockets e apresenta nível, porcentagem, alerta, RSSI e estado do receptor. O histórico permanece demonstrativo até que seja adicionado armazenamento das medições.
 
-## Executar localmente
+## Executar com o ambiente local
 
-Abra `dist/index.html` diretamente no navegador ou, para simular um servidor web:
+Na raiz do repositório:
 
 ```bash
-cd dist
-python3 -m http.server 8080
+./scripts/install-local-mosquitto.sh
+./scripts/start-local.sh
 ```
 
-Depois acesse `http://localhost:8080`.
+O script mostra o endereço do painel, normalmente semelhante a:
 
-## Estrutura
+```text
+http://192.168.1.50:8080
+```
 
-- `dist/index.html`: estrutura e conteúdo das telas.
-- `dist/styles.css`: identidade visual e responsividade.
-- `dist/app.js`: navegação e interações com dados simulados.
+Abra esse endereço em um navegador conectado à mesma rede. O painel assina automaticamente `hydrowatch/#` no broker WebSocket da mesma máquina.
 
-## Integração futura
+Para encerrar:
 
-Os dados estão isolados em `app.js` no objeto `mockData`. Quando o Supabase estiver disponível, essa camada poderá ser substituída por consultas ao PostgreSQL usando o cliente oficial, sem redesenhar a interface.
+```bash
+./scripts/stop-local.sh
+```
+
+## Arquivos principais
+
+- `dist/index.html`: estrutura das telas e carregamento do MQTT.js;
+- `dist/styles.css`: identidade visual e estados online/offline;
+- `dist/mqtt-config.js`: endereço WebSocket e prefixo dos tópicos;
+- `dist/app.js`: navegação, dados MQTT em tempo real e histórico demonstrativo.
+
+## Limitações
+
+- A integração local usa `ws://`, sem TLS, e deve permanecer em uma rede controlada.
+- O GitHub Pages exige `wss://`; portanto, a publicação pública precisa de broker WebSocket com TLS e domínio válido.
+- O broker retém somente a leitura mais recente. Um backend ou banco de dados será necessário para produzir histórico real.

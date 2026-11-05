@@ -1,8 +1,5 @@
-/*
- * Camada de apresentação estática do HydroWatch.
- * Integração futura: substitua mockData e as leituras locais por chamadas ao
- * cliente do Supabase. A navegação e a renderização visual podem ser mantidas.
- */
+/* Interface HydroWatch. O resumo atual recebe dados MQTT em tempo real; o
+ * histórico permanece demonstrativo até haver armazenamento das medições. */
 
 const mockData = {
   periods: {
@@ -104,3 +101,176 @@ document.querySelectorAll(".settings-list button").forEach((button) => {
 });
 
 navigateTo("inicio");
+
+const mqttConfig = window.HYDROWATCH_MQTT_CONFIG;
+const liveData = {
+  mqttConnected: false,
+  deviceStatus: "offline",
+  level: null,
+  percent: null,
+  alert: "ideal",
+  rssi: null,
+};
+
+const liveElements = {
+  connectionStatus: document.querySelector("#connectionStatus"),
+  deviceStatus: document.querySelector("#deviceStatus"),
+  currentLevel: document.querySelector("#currentLevel"),
+  currentPercent: document.querySelector("#currentPercent"),
+  levelTrack: document.querySelector("#levelTrack"),
+  levelFill: document.querySelector("#levelFill"),
+  currentState: document.querySelector("#currentState"),
+  sensorDistance: document.querySelector("#sensorDistance"),
+  readingState: document.querySelector("#readingState"),
+  currentRange: document.querySelector("#currentRange"),
+  alertState: document.querySelector("#alertState"),
+  connectivityDetails: document.querySelector("#connectivityDetails"),
+  lastSync: document.querySelector("#lastSync"),
+};
+
+function formatNumber(value) {
+  return Number(value).toFixed(1).replace(".", ",");
+}
+
+function setConnectionChip(element, online, text) {
+  element.classList.toggle("is-offline", !online);
+  element.innerHTML = `<span></span> ${text}`;
+}
+
+function updateConnectionView() {
+  const deviceOnline = liveData.mqttConnected && liveData.deviceStatus !== "offline";
+  setConnectionChip(
+    liveElements.connectionStatus,
+    deviceOnline,
+    deviceOnline ? "Online" : "Offline"
+  );
+  setConnectionChip(
+    liveElements.deviceStatus,
+    deviceOnline,
+    deviceOnline ? "Conectado" : "Desconectado"
+  );
+
+  if (!liveData.mqttConnected) {
+    liveElements.connectivityDetails.textContent = "Painel desconectado do MQTT";
+  } else if (liveData.rssi !== null) {
+    liveElements.connectivityDetails.textContent = `MQTT conectado • RSSI LoRa ${formatNumber(liveData.rssi)} dBm`;
+  } else {
+    liveElements.connectivityDetails.textContent = "MQTT conectado • aguardando LoRa";
+  }
+}
+
+function updateMeasurementView() {
+  if (liveData.level !== null) {
+    liveElements.currentLevel.textContent = formatNumber(liveData.level);
+    liveElements.sensorDistance.innerHTML = `${formatNumber(15 - liveData.level)} <small>cm</small>`;
+    liveElements.readingState.textContent = "Leitura válida";
+  }
+
+  if (liveData.percent !== null) {
+    const safePercent = Math.max(0, Math.min(100, liveData.percent));
+    liveElements.currentPercent.textContent = `${Math.round(safePercent)}%`;
+    liveElements.levelFill.style.width = `${safePercent}%`;
+    liveElements.levelTrack.setAttribute(
+      "aria-label",
+      `Nível atual: ${liveData.level} centímetros, equivalente a ${safePercent} por cento`
+    );
+  }
+
+  const alertLabels = {
+    baixo: "Nível baixo",
+    alto: "Nível alto",
+    ideal: "Faixa normal",
+  };
+  const label = alertLabels[liveData.alert] || "Estado desconhecido";
+  const critical = liveData.alert === "baixo" || liveData.alert === "alto";
+
+  liveElements.currentState.textContent = label;
+  liveElements.currentRange.textContent = label;
+  liveElements.alertState.textContent = critical ? "Alerta ativo" : "Sem alerta";
+  liveElements.alertState.className = `metric-state ${critical ? "attention" : "good"}`;
+
+  const now = new Date().toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  document.querySelector("#lastUpdate").textContent = `Atualizado às ${now}`;
+  liveElements.lastSync.textContent = `Última sincronização: ${now}`;
+}
+
+function startMqtt() {
+  if (!mqttConfig || typeof window.mqtt === "undefined") {
+    console.error("MQTT.js ou mqtt-config.js nao foi carregado");
+    liveElements.connectivityDetails.textContent = "Biblioteca MQTT indisponível";
+    return;
+  }
+
+  const options = {
+    clientId: `hydrowatch-web-${Math.random().toString(16).slice(2, 10)}`,
+    clean: true,
+    reconnectPeriod: 2000,
+    connectTimeout: 5000,
+  };
+  if (mqttConfig.username) options.username = mqttConfig.username;
+  if (mqttConfig.password) options.password = mqttConfig.password;
+
+  const client = window.mqtt.connect(mqttConfig.brokerUrl, options);
+  const topicBase = mqttConfig.topicPrefix.replace(/\/$/, "");
+
+  client.on("connect", () => {
+    liveData.mqttConnected = true;
+    updateConnectionView();
+    client.subscribe(`${topicBase}/#`, (error) => {
+      if (error) {
+        console.error("Falha ao assinar topicos MQTT", error);
+        liveElements.connectivityDetails.textContent = "Falha ao assinar tópicos MQTT";
+      }
+    });
+  });
+
+  client.on("message", (topic, payload) => {
+    const value = payload.toString();
+    const suffix = topic.slice(topicBase.length + 1);
+
+    switch (suffix) {
+      case "nivel_cm":
+        liveData.level = Number(value);
+        liveData.deviceStatus = "online";
+        break;
+      case "nivel_pct":
+        liveData.percent = Number(value);
+        break;
+      case "alerta":
+        liveData.alert = value;
+        break;
+      case "rssi":
+        liveData.rssi = Number(value);
+        break;
+      case "status":
+        liveData.deviceStatus = value;
+        if (value === "sensor_sem_eco") {
+          liveElements.currentState.textContent = "Sensor sem eco";
+          liveElements.readingState.textContent = "Falha do sensor";
+        }
+        break;
+      default:
+        return;
+    }
+
+    updateConnectionView();
+    if (suffix !== "status" || value !== "sensor_sem_eco") updateMeasurementView();
+  });
+
+  client.on("offline", () => {
+    liveData.mqttConnected = false;
+    updateConnectionView();
+  });
+
+  client.on("error", (error) => {
+    console.error("Erro MQTT", error);
+    liveElements.connectivityDetails.textContent = "Erro na conexão MQTT";
+  });
+}
+
+updateConnectionView();
+startMqtt();

@@ -73,32 +73,32 @@
                 <span>Monitorando</span>
                 <strong>Tanque do protótipo</strong>
               </div>
-              <span class="online-chip"><span></span> Online</span>
+              <span class="online-chip" id="connectionStatus"><span></span> Aguardando</span>
             </div>
 
             <article class="level-card">
               <div class="level-card__header">
                 <div>
                   <span class="card-kicker">NÍVEL ATUAL</span>
-                  <div class="level-value"><strong>7,6</strong><span>cm</span></div>
+                  <div class="level-value"><strong id="currentLevel">--</strong><span>cm</span></div>
                 </div>
                 <button class="refresh-button" id="refreshButton" type="button" aria-label="Atualizar dados">
                   <svg><use href="#icon-refresh"></use></svg>
                 </button>
               </div>
 
-              <div class="level-track" aria-label="Nível atual: 7,6 centímetros, equivalente a 51%">
-                <span style="width: 51%"></span>
+              <div class="level-track" id="levelTrack" aria-label="Aguardando a primeira medição">
+                <span id="levelFill" style="width: 0%"></span>
               </div>
 
               <div class="level-meta">
-                <div><span>Preenchimento</span><strong>51%</strong></div>
+                <div><span>Preenchimento</span><strong id="currentPercent">--%</strong></div>
                 <div><span>Altura do tanque</span><strong>15,0 cm</strong></div>
               </div>
 
               <div class="card-footer">
-                <span class="quality-status"><svg><use href="#icon-check"></use></svg> Faixa normal</span>
-                <span id="lastUpdate">Atualizado às 14:32</span>
+                <span class="quality-status" id="currentState"><svg><use href="#icon-check"></use></svg> Aguardando dados</span>
+                <span id="lastUpdate">Sem dados recebidos</span>
               </div>
             </article>
 
@@ -111,14 +111,14 @@
               <article class="metric-card">
                 <span class="metric-icon distance"><svg><use href="#icon-ruler"></use></svg></span>
                 <span class="metric-label">Distância do sensor</span>
-                <div class="metric-value">7,4 <small>cm</small></div>
-                <span class="metric-state neutral">Leitura válida</span>
+                <div class="metric-value" id="sensorDistance">-- <small>cm</small></div>
+                <span class="metric-state neutral" id="readingState">Aguardando</span>
               </article>
               <article class="metric-card">
                 <span class="metric-icon range"><svg><use href="#icon-check"></use></svg></span>
                 <span class="metric-label">Faixa atual</span>
-                <div class="metric-value">Normal</div>
-                <span class="metric-state good">Sem alerta</span>
+                <div class="metric-value" id="currentRange">--</div>
+                <span class="metric-state neutral" id="alertState">Aguardando</span>
               </article>
               <article class="metric-card">
                 <span class="metric-icon limit-low"><svg><use href="#icon-drop"></use></svg></span>
@@ -217,14 +217,14 @@
           <div class="content settings-content">
             <article class="device-card">
               <span class="device-visual"><svg><use href="#icon-wifi"></use></svg></span>
-              <div><span class="online-chip"><span></span> Conectado</span><h2>HW-Reservatório 01</h2><p>Última sincronização: agora</p></div>
+              <div><span class="online-chip" id="deviceStatus"><span></span> Aguardando</span><h2>HW-Reservatório 01</h2><p id="lastSync">Última sincronização: sem dados</p></div>
             </article>
 
             <div class="section-label">DISPOSITIVO</div>
             <div class="settings-list">
               <button type="button"><span class="setting-icon"><svg><use href="#icon-sliders"></use></svg></span><span><strong>Limites de nível</strong><small>Baixo: 3 cm • Alto: 12 cm</small></span><svg class="chevron"><use href="#icon-chevron"></use></svg></button>
               <button type="button"><span class="setting-icon"><svg><use href="#icon-bell"></use></svg></span><span><strong>Notificações</strong><small>Alertas críticos ativados</small></span><svg class="chevron"><use href="#icon-chevron"></use></svg></button>
-              <button type="button"><span class="setting-icon"><svg><use href="#icon-wifi"></use></svg></span><span><strong>Conectividade</strong><small>Wi-Fi • Sinal excelente</small></span><svg class="chevron"><use href="#icon-chevron"></use></svg></button>
+              <button type="button"><span class="setting-icon"><svg><use href="#icon-wifi"></use></svg></span><span><strong>Conectividade</strong><small id="connectivityDetails">MQTT aguardando conexão</small></span><svg class="chevron"><use href="#icon-chevron"></use></svg></button>
             </div>
 
             <div class="section-label">SOBRE</div>
@@ -245,6 +245,8 @@
       </main>
     </div>
 
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="mqtt-config.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

@@ -4,7 +4,7 @@ O HydroWatch monitora o nível de líquido de um tanque com 15 cm de altura. Um 
 
 Não há LoRaWAN nem gateway neste projeto. Os dois módulos SMW-SX1262M0 se comunicam diretamente em **915200 kHz**.
 
-O repositório também mantém em `hidrowatch-app/` um protótipo estático da interface mobile. Ele ainda usa dados simulados e não faz parte do caminho MQTT implementado nos sketches.
+O painel em `hidrowatch-app/` recebe nível, porcentagem, alerta, RSSI e status em tempo real por MQTT sobre WebSockets. A tela de histórico ainda usa dados demonstrativos, pois o broker não armazena uma série histórica.
 
 ## Arquitetura
 
@@ -96,6 +96,8 @@ Também são usadas bibliotecas fornecidas pelos respectivos cores:
 - `SoftwareSerial`, no Arduino AVR/Uno;
 - `WiFi` e `HardwareSerial`, no core **esp32 by Espressif Systems**.
 
+O painel web carrega o **MQTT.js** pelo CDN oficial `unpkg.com`. Para o ambiente local também são usados Mosquitto 2.x, Python 3 e os utilitários Fedora `dnf`, `rpm2cpio` e `cpio`.
+
 Nenhuma biblioteca LoRaWAN é necessária, pois a comunicação usa P2P.
 
 ## Configuração das credenciais
@@ -120,6 +122,40 @@ const char MQTT_TOPIC_PREFIX[] = "hydrowatch";
 ```
 
 O exemplo usa MQTT TCP na porta 1883. O sketch atual não configura TLS.
+
+## Ambiente MQTT e painel local
+
+No Fedora, o projeto pode baixar o Mosquitto para `.local-tools/` sem instalação global e sem `sudo`:
+
+```bash
+./scripts/install-local-mosquitto.sh
+./scripts/start-local.sh
+```
+
+O comando de inicialização mostra os três endereços usados:
+
+```text
+Broker MQTT:       mqtt://IP_DO_COMPUTADOR:1883
+Broker WebSocket:  ws://IP_DO_COMPUTADOR:9001
+Painel HydroWatch: http://IP_DO_COMPUTADOR:8080
+```
+
+Abra o endereço do painel em qualquer dispositivo na mesma rede. O arquivo `hidrowatch-app/dist/mqtt-config.js` usa automaticamente o host do painel como broker WebSocket. Para encerrar os processos:
+
+```bash
+./scripts/stop-local.sh
+```
+
+Se o firewall estiver ativo, libere as portas uma vez:
+
+```bash
+sudo firewall-cmd --add-port=1883/tcp --permanent
+sudo firewall-cmd --add-port=9001/tcp --permanent
+sudo firewall-cmd --add-port=8080/tcp --permanent
+sudo firewall-cmd --reload
+```
+
+A configuração `mosquitto-local.conf` permite acesso anônimo e não usa TLS. Ela é adequada somente para uma rede de laboratório controlada, não para exposição direta na internet.
 
 ## Compilação e gravação
 
@@ -160,6 +196,11 @@ O receptor usa `HardwareSerial(2)` nos GPIOs 25 e 26, conforme a montagem defini
 │   └── HydroWatch.ino
 ├── hidrowatch-app/
 │   └── dist/
+├── scripts/
+│   ├── install-local-mosquitto.sh
+│   ├── start-local.sh
+│   └── stop-local.sh
+├── mosquitto-local.conf
 └── README.md
 ```
 
@@ -170,4 +211,6 @@ O receptor usa `HardwareSerial(2)` nos GPIOs 25 e 26, conforme a montagem defini
 - O cálculo supõe um tanque de geometria simples e informa nível, não volume.
 - Ondulações, espuma e o posicionamento do sensor podem afetar as leituras.
 - Não há fila persistente para mensagens recebidas enquanto o broker está indisponível.
+- O histórico do painel permanece demonstrativo; somente o resumo atual é alimentado pelo MQTT.
+- O painel local usa MQTT/WebSockets sem TLS e deve permanecer em uma rede controlada.
 - A alimentação, o alcance LoRa, as credenciais Wi-Fi/MQTT, a LWT e o buzzer precisam ser validados no hardware real.
